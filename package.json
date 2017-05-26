@@ -1,0 +1,39 @@
+{
+  "name": "learn-webapp-visualizer",
+  "version": "0.1.0-beta",
+  "private": true,
+  "homepage": "qutang.github.io/mhealth-data-visualizer",
+  "dependencies": {
+    "async": "^2.4.1",
+    "deepcopy": "^0.6.3",
+    "highcharts": "^5.0.12",
+    "highcharts-annotations": "^1.3.1",
+    "highcharts-more": "^0.1.2",
+    "jquery": "^3.2.1",
+    "mathjs": "^3.13.1",
+    "milsushi2": "0.0.2",
+    "moment": "^2.18.1",
+    "papaparse": "^4.3.2",
+    "plotly.js": "^1.27.1",
+    "pondjs": "^0.8.5",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "react-dropzone": "^3.13.1",
+    "react-highcharts": "^12.0.0",
+    "react-timeseries-charts": "^0.12.4",
+    "webworkify": "^1.4.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^1.0.0",
+    "react-scripts": "1.0.6",
+    "victory": "^0.19.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  }
+}

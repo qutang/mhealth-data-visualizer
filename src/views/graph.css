@@ -1,0 +1,20 @@
+.graph-info{
+	text-align: left;
+}
+
+.filedrop {
+	border: 2px dashed gray;
+	border-radius: 3px;
+	width: auto;
+	padding: 2px;
+	height: 100%;
+	min-height: 10em;
+}
+
+.filedropActive {
+	border: 2px solid green;
+	border-radius: 3px;
+	width: auto;
+	padding: 2px;
+	background-color: #aaa;
+}
