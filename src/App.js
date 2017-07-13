@@ -524,7 +524,7 @@ const FileDropZone = observer(class FileDropZone extends Component {
 				<Dropzone className='filedrop' 			activeClassName='filedropActive'
 				accept='.csv' onDrop={this.onDrop.bind(this)}>
 					<Card>
-					<h4 style={{textAlign: "center"}}>mHealth visualizer - v1.0.0</h4>
+					<h4 style={{textAlign: "center"}}>mHealth visualizer - v1.0.1</h4>
 					<br />
 					<p style={{textAlign: "center"}}><img style={{borderRadius: "50%", width: "70px", height: "auto"}} src={LogoImage} alt=""/></p>
 					<p style={{textAlign: "center"}}>Drag files or click here to load</p>

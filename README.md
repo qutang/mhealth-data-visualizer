@@ -19,6 +19,9 @@ This is a web app that supports offline access. It loads local mhealth sensor or
 
 ## Highlights in changelog
 
+### v1.0.1
+1. Default display setting
+
 ### v1.0.0
 
 1. X axis synchronization

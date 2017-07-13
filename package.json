@@ -1,6 +1,6 @@
 {
   "name": "learn-webapp-visualizer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "homepage": "https://qutang.github.io/mhealth-data-visualizer",
   "dependencies": {
