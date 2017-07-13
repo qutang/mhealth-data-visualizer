@@ -4,6 +4,12 @@ class ObservableUIStore {
 	constructor() {
 		mobx.extendObservable(this, {
 			graphCells: new Map(),
+			defaultSettings: {
+				xSync: true,
+				ySync: true,
+				heightMode: "compact",
+				width: 12
+			},
 			addGraphCell: mobx.action((graphKey = null, graphCellConfig) => {
 				if(!graphKey) graphKey = this.graphCells.size
 				this.graphCells.set(graphKey, graphCellConfig)

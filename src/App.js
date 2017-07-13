@@ -116,8 +116,10 @@ const SensorChart = observer(class SensorChart extends Component {
 		const graphCell = this.props.graphCell
 		this.reactToXRangeChange = mobx.reaction(() => 	graphCell.xRange, xRange => {
 			console.log("react to x range change called" + this.props.id)
-			graphCell.chart.xAxis[0].setExtremes(xRange[0], xRange[1])
-			graphCell.chart.showResetZoom();
+			if(graphCell.chart && graphCell.chart.xAxis){
+				graphCell.chart.xAxis[0].setExtremes(xRange[0], xRange[1])
+				graphCell.chart.showResetZoom();
+			}
 		})
 		
 		if(graphCell.isLoading){
@@ -484,9 +486,9 @@ const FileDropZone = observer(class FileDropZone extends Component {
 		acceptedFiles.forEach((file, index) => {
 			console.log(file)
 			const newCell = {
-				width: 24,
-				heightMode: "standard",
-				visible: false,
+				width: uistore.defaultSettings.width,
+				heightMode: uistore.defaultSettings.heightMode,
+				visible: true,
 				source: file,
 				title: FileFormat.getSensorName(file.name) + "-" + FileFormat.getSensorId(file.name),
 				fileType: FileFormat.getFileType(file.name),
@@ -496,8 +498,8 @@ const FileDropZone = observer(class FileDropZone extends Component {
 				pointMode: "line",
 				yRange: null,
 				xRange: null,
-				xSync: false,
-				ySync: false
+				xSync: uistore.defaultSettings.xSync,
+				ySync: uistore.defaultSettings.ySync
 			}
 			console.log(newCell.fileType)
 			const graphKey = file.name.replace(/\./g,'-')
@@ -653,15 +655,15 @@ const PopoverMenu = observer(class PopoverMenu extends Component {
 						<Radio.Button value="scroll">Scroll mode</Radio.Button>
 					</Radio.Group>*/}
 					<div style={{height:"5px"}}></div>
-					<Radio.Group onChange={this.props.onHeightModeChange} defaultValue="standard">
+					<Radio.Group onChange={this.props.onHeightModeChange} defaultValue={this.props.defaultHeightMode}>
 						<Radio.Button value="standard">Standard mode</Radio.Button>
 						<Radio.Button value="compact">Compact mode</Radio.Button>
 					</Radio.Group>
 	
 				
 				{this.showPointMode(this.props.enablePointMode)}
-				<h4 style={{marginTop: "5px"}}><span>Sync X axis</span> <Switch defaultChecked={false} size="small" onChange={this.props.onSyncXChange} /></h4>
-				<h4 style={{marginTop: "5px"}}><span>Sync Y axis</span> <Switch defaultChecked={false} size="small" disabled={this.props.ySyncDisabled}/></h4>		
+				<h4 style={{marginTop: "5px"}}><span>Sync X axis</span> <Switch defaultChecked={this.props.defaultXsyncStatus} size="small" onChange={this.props.onSyncXChange} /></h4>
+				<h4 style={{marginTop: "5px"}}><span>Sync Y axis</span> <Switch defaultChecked={this.props.defaultYsyncStatus} size="small" disabled={this.props.ySyncDisabled}/></h4>		
 			</div>	
 		)
 	}
@@ -713,7 +715,7 @@ const LoadedDataLabel = observer(class LoadedDataLabel extends Component {
 
 		return <Popover placement="leftTop" 
 						content={
-							<PopoverMenu afterWindowWidthSliderChange={this.changeWidth.bind(this)} defaultWindowWidthSliderValue={this.cell.width} onDisplayModeChange={this.changeDisplayMode.bind(this)} 
+							<PopoverMenu afterWindowWidthSliderChange={this.changeWidth.bind(this)} defaultWindowWidthSliderValue={this.cell.width} defaultXsyncStatus={this.cell.xSync} defaultYsyncStatus={this.cell.ySync} defaultHeightMode={this.cell.heightMode}onDisplayModeChange={this.changeDisplayMode.bind(this)} 
 							onHeightModeChange={this.changeHeightMode.bind(this)}
 							ySyncDisabled={ySyncDisabled} enablePointMode={enablePointMode} onPointModeChange={this.changePointMode.bind(this)} menuWidth={250} onSyncXChange={this.changeSyncXStatus.bind(this)}/>
 				}>
@@ -738,6 +740,45 @@ const LoadedDataTab = observer(class LoadedDataTab extends Component{
 			})}
 		</div>
 	)
+	}
+})
+
+const SettingTab = observer(class SettingTab extends Component{
+
+	changeWidth(newWidth) {
+		this.props.uistore.defaultSettings.width = newWidth
+	}
+
+	changeXsync(checked) {
+		this.props.uistore.defaultSettings.xSync = checked
+	}
+
+	changeYsync(checked) {
+		this.props.uistore.defaultSettings.ySync = checked
+	}
+
+	changeHeightMode(value) {
+		this.props.uistore.defaultSettings.heightMode = value
+	}
+
+	render () {
+		return <div>
+			<Row>
+				<h3>Default display settings</h3>
+				<h4>Window width</h4>
+				<Col lg={8}>
+					<Slider min={8} max={24} defaultValue={this.props.uistore.defaultSettings.width} onAfterChange={this.changeWidth.bind(this)} step={4} dots={true} />
+				</Col>
+			</Row>
+			<Row>
+				<Checkbox defaultChecked={this.props.uistore.defaultSettings.xSync} onChange={this.changeXsync.bind(this)}>Sync x axis</Checkbox>
+				<Checkbox defaultChecked={this.props.uistore.defaultSettings.ySync} onChange={this.changeYsync.bind(this)}>Sync y axis</Checkbox>
+				<Radio.Group onChange={this.changeHeightMode.bind(this)} defaultValue={this.props.uistore.defaultSettings.heightMode}>
+					<Radio.Button value="standard">Standard mode</Radio.Button>
+					<Radio.Button value="compact">Compact mode</Radio.Button>
+				</Radio.Group>
+			</Row>
+		</div>
 	}
 })
 
@@ -798,16 +839,10 @@ class App extends Component {
 							<Tabs.TabPane tab="Loaded data" key="1">
 								<LoadedDataTab uistore={this.observableUIStore}></LoadedDataTab>
 							</Tabs.TabPane>
-							{/*<Tabs.TabPane tab="Settings" key="2">
-								<Checkbox defaultChecked={true}>Display Graph controls</Checkbox>
-								<Checkbox defaultChecked={true}>Synchronize x axis</Checkbox>
-								<Checkbox defaultChecked={true}>Synchronize y axis</Checkbox>
+							<Tabs.TabPane tab="Settings" key="2">
+								<SettingTab uistore={this.observableUIStore}></SettingTab>
 							</Tabs.TabPane>
-							<Tabs.TabPane tab="Debugging" key="3">
-								<Button onClick={this.addGraphCell.bind(this)}>Add new graph cell</Button>
-								<Button onClick={this.removeGraphCell.bind(this)}>Remove graph cell</Button>
-							</Tabs.TabPane>*/}
-							<Tabs.TabPane tab="Help" key="4">
+							<Tabs.TabPane tab="Help" key="3">
 
 								<p><Button icon='file' onClick={this.onClickFileFormat}>Accepted file format</Button></p>
 								<div style={{height:"5px"}}></div>
