@@ -8,8 +8,15 @@ class ObservableUIStore {
 				xSync: true,
 				ySync: true,
 				heightMode: "compact",
-				width: 12
+				width: 12,
+				yRange: [-5, 5]
 			},
+			logging: mobx.autorun(() => {
+				for (const graphCell in this.graphCells) {
+					console.log(graphCell.xRange)
+					console.log(graphCell.yRange)
+				}
+			}),
 			addGraphCell: mobx.action((graphKey = null, graphCellConfig) => {
 				if(!graphKey) graphKey = this.graphCells.size
 				this.graphCells.set(graphKey, graphCellConfig)
@@ -39,6 +46,20 @@ class ObservableUIStore {
 					if(callerKey !== graphKey){
 						const cell = this.graphCells.get(graphKey);
 						if(cell.xSync) cell.xRange = extremes;
+					}
+				})
+			}),
+			handleSyncY: mobx.action((callerKey, extremes) => {
+				console.log("handle sync y")
+				this.graphCells.keys().forEach((graphKey, index) => {
+					if(callerKey !== graphKey){
+						const cell = this.graphCells.get(graphKey);
+						if(cell.ySync){
+							cell.yRange.replace(extremes);
+							if(cell.chart && cell.chart.yAxis){
+								cell.chart.yAxis[0].setExtremes(extremes[0], extremes[1])
+							}
+						}
 					}
 				})
 			})

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Modal, Alert, Switch, DatePicker, Radio, Badge, Popover, Tag, Checkbox, Collapse, Card, Row, Col, Tabs, Slider, Button } from 'antd';
+import { Modal, Alert, Switch, DatePicker, Radio, Badge, Popover, Tag, Checkbox, Collapse, Card, Row, Col, Tabs, Slider, Button, InputNumber, Tooltip } from 'antd';
 import Dropzone from 'react-dropzone';
 import * as mobx from 'mobx';
 import {observer} from "mobx-react"
@@ -60,7 +60,11 @@ const SensorChart = observer(class SensorChart extends Component {
 			xAxis: {
 			},
 			yAxis: {
-				opposite:false
+				opposite:false,
+				alignTicks: false,
+				endOnTick: false,
+				startOnTick: false,
+				tickInterval: 0.5
 			},
 			rangeSelector : {
 				enabled: false
@@ -72,6 +76,7 @@ const SensorChart = observer(class SensorChart extends Component {
 	componentDidUpdate() {
 		if(this.refs[this.props.id]){
 			this.props.graphCell.chart = this.refs[this.props.id].getChart()
+			this.refs[this.props.id].getChart().yAxis[0].setExtremes(this.props.graphCell.yRange[0], this.props.graphCell.yRange[1])
 		}
 		
 	}
@@ -118,7 +123,18 @@ const SensorChart = observer(class SensorChart extends Component {
 			console.log("react to x range change called" + this.props.id)
 			if(graphCell.chart && graphCell.chart.xAxis){
 				graphCell.chart.xAxis[0].setExtremes(xRange[0], xRange[1])
+				graphCell.chart.yAxis[0].setExtremes(graphCell.yRange[0], graphCell.yRange[1])
 				graphCell.chart.showResetZoom();
+			}
+		})
+
+		this.reactToYRangeChange = mobx.reaction(() => 	graphCell.yRange, yRange => {
+			console.log("react to y range change called" + this.props.id)
+			if(graphCell.chart && graphCell.chart.yAxis){
+				graphCell.chart.yAxis[0].setExtremes(graphCell.yRange[0], graphCell.yRange[1])
+			}
+			if(graphCell.ySync){
+				this.props.onSyncY(this.props.id, [graphCell.yRange[0], graphCell.yRange[1]])
 			}
 		})
 		
@@ -136,7 +152,8 @@ const SensorChart = observer(class SensorChart extends Component {
 					afterSetExtremes: (event) => {
 						if(event.trigger){
 							console.log("set x range")
-							graphCell.xRange = [event.min, event.max]
+							graphCell.xRange.replace([event.min, event.max])
+							graphCell.chart.yAxis[0].setExtremes(graphCell.yRange[0], graphCell.yRange[1])
 							if(graphCell.xSync){
 								this.props.onSyncX(this.props.id, [event.min, event.max])
 							}
@@ -144,11 +161,30 @@ const SensorChart = observer(class SensorChart extends Component {
 					}
 				}
 			}
+			// this.config.yAxis.min = graphCell.yRange[0]
+			// this.config.yAxis.max = graphCell.yRange[1]
+
+			this.config.yAxis.events = {
+				afterSetExtremes: (event) => {
+					if(event.trigger){
+						console.log("set y range")
+						graphCell.chart.yAxis[0].setExtremes(graphCell.yRange[0], graphCell.yRange[1])
+						if(graphCell.ySync){
+							this.props.onSyncY(this.props.id, [graphCell.yRange[0], graphCell.yRange[1]])
+						}
+					}
+				}
+			}
+
 			this.config.chart.events = {
 				load: function() {
 					if(graphCell.xRange){
 						this.xAxis[0].setExtremes(graphCell.xRange[0], graphCell.xRange[1])
 						this.showResetZoom()
+					}
+
+					if(graphCell.yRange){
+						this.yAxis[0].setExtremes(graphCell.yRange[0], graphCell.yRange[1])
 					}
 				}
 			}
@@ -496,8 +532,8 @@ const FileDropZone = observer(class FileDropZone extends Component {
 				status: "processing",
 				displayMode: "fit",
 				pointMode: "line",
-				yRange: null,
-				xRange: null,
+				yRange: [uistore.defaultSettings.yRange[0], uistore.defaultSettings.yRange[1]],
+				xRange: [null, null],
 				xSync: uistore.defaultSettings.xSync,
 				ySync: uistore.defaultSettings.ySync
 			}
@@ -572,7 +608,7 @@ const GraphCell = observer(class GraphCell extends Component {
 		switch(graphCell.fileType){
 			case "sensor":
 				console.log("sensor chart")
-				return <SensorChart id={graphKey} graphCell={graphCell} onSyncX={this.props.onSyncX}></SensorChart>
+				return <SensorChart id={graphKey} graphCell={graphCell} onSyncX={this.props.onSyncX} onSyncY={this.props.onSyncY}></SensorChart>
 			case "annotation":
 				console.log("annotation chart")
 				return <AnnotationChart id={graphKey} graphCell={graphCell} onSyncX={this.props.onSyncX}></AnnotationChart>
@@ -581,7 +617,7 @@ const GraphCell = observer(class GraphCell extends Component {
 				console.log(graphCell.fileType + " chart")
 				return <CategoryChart id={graphKey} graphCell={graphCell} onSyncX={this.props.onSyncX}></CategoryChart>
 			default:
-				return <SensorChart id={graphKey} graphCell={graphCell} onSyncX={this.props.onSyncX}></SensorChart>
+				return <SensorChart id={graphKey} graphCell={graphCell} onSyncX={this.props.onSyncX} onSyncY={this.props.onSyncY}></SensorChart>
 		}
 	}
 
@@ -594,15 +630,13 @@ const GraphCell = observer(class GraphCell extends Component {
 	render () {
 		
 		const chart = <p>A chart</p>;
-		const graphCell = this.props.graphCell;
-		const graphKey = this.props.graphKey;
-		const display = graphCell.visible ? "block" : "none";
+		const display = this.props.graphCell.visible ? "block" : "none";
 		return (
-			<Col span={graphCell.width} style={{display: display}}>
-				<h4 style={{backgroundColor: "white", textAlign:"center"}}>{graphCell.title}</h4>
+			<Col span={this.props.graphCell.width} style={{display: display}}>
+				<h4 style={{backgroundColor: "white", textAlign:"center"}}>{this.props.graphCell.title}</h4>
 					<Row type='flex' justify='space-between'>
 						<Col span={24}>
-							{this.getChart(graphKey, graphCell)}
+							{this.getChart(this.props.graphKey, this.props.graphCell)}
 						</Col>
 					</Row>
 					{/*<GraphCellControl graphCell={graphCell} graphKey={graphKey} />*/}
@@ -617,7 +651,7 @@ const GraphCellsContainer = observer((props) => {
 		<Row type='flex' className='chart-container' style={{ backgroundColor:"#e9e9e9"}}>
 			{props.uistore.graphCells.keys().map((graphKey, index) => {
 				return (
-					<GraphCell key={graphKey} graphCell={props.uistore.graphCells.get(graphKey)} graphKey={graphKey} onSyncX={props.uistore.handleSyncX.bind(this)} />
+					<GraphCell key={graphKey} graphCell={props.uistore.graphCells.get(graphKey)} graphKey={graphKey} onSyncX={props.uistore.handleSyncX.bind(this)} onSyncY={props.uistore.handleSyncY.bind(this)} />
 				)
 			})}
 		</Row>
@@ -663,7 +697,10 @@ const PopoverMenu = observer(class PopoverMenu extends Component {
 				
 				{this.showPointMode(this.props.enablePointMode)}
 				<h4 style={{marginTop: "5px"}}><span>Sync X axis</span> <Switch defaultChecked={this.props.defaultXsyncStatus} size="small" onChange={this.props.onSyncXChange} /></h4>
-				<h4 style={{marginTop: "5px"}}><span>Sync Y axis</span> <Switch defaultChecked={this.props.defaultYsyncStatus} size="small" disabled={this.props.ySyncDisabled}/></h4>		
+				<h4 style={{marginTop: "5px"}}><span>Sync Y axis</span> <Switch defaultChecked={this.props.defaultYsyncStatus} size="small" disabled={this.props.ySyncDisabled}/></h4>
+				<h4>Y range</h4>
+				<InputNumber min={-10} max={10} step={0.1} defaultValue={this.props.defaultYRange[0]} formatter={value => `${value}(g)`} parser={value => value.replace('(g)', '')} onChange={this.props.onMinYChange}></InputNumber><span> - </span>
+				<InputNumber min={-10} max={10} step={0.1} defaultValue={this.props.defaultYRange[1]} formatter={value => `${value}(g)`} parser={value => value.replace('(g)', '')} onChange={this.props.onMaxYChange}></InputNumber>		
 			</div>	
 		)
 	}
@@ -694,6 +731,16 @@ const LoadedDataLabel = observer(class LoadedDataLabel extends Component {
 		this.cell.xSync = checked
 	}
 
+	changeMinY (value) {
+		let temp = this.cell.yRange.slice()
+		this.cell.yRange = [value, temp[1]]
+	}
+
+	changeMaxY (value) {
+		let temp = this.cell.yRange.slice()
+		this.cell.yRange = [temp[0], value]
+	}
+
 	render () {
 		this.cell = this.props.uistore.graphCells.get(this.props.graphKey)
 
@@ -717,7 +764,7 @@ const LoadedDataLabel = observer(class LoadedDataLabel extends Component {
 						content={
 							<PopoverMenu afterWindowWidthSliderChange={this.changeWidth.bind(this)} defaultWindowWidthSliderValue={this.cell.width} defaultXsyncStatus={this.cell.xSync} defaultYsyncStatus={this.cell.ySync} defaultHeightMode={this.cell.heightMode}onDisplayModeChange={this.changeDisplayMode.bind(this)} 
 							onHeightModeChange={this.changeHeightMode.bind(this)}
-							ySyncDisabled={ySyncDisabled} enablePointMode={enablePointMode} onPointModeChange={this.changePointMode.bind(this)} menuWidth={250} onSyncXChange={this.changeSyncXStatus.bind(this)}/>
+							ySyncDisabled={ySyncDisabled} enablePointMode={enablePointMode} onPointModeChange={this.changePointMode.bind(this)} menuWidth={250} onSyncXChange={this.changeSyncXStatus.bind(this)} defaultYRange={this.cell.yRange} onMinYChange={this.changeMinY.bind(this)} onMaxYChange={this.changeMaxY.bind(this)}/>
 				}>
 			<Tag key={this.props.graphKey} closable={true} color="blue" onClose={() => {this.props.uistore.removeGraphCell(this.props.graphKey)}}>
 			<Badge status={this.cell.status} />
@@ -761,18 +808,33 @@ const SettingTab = observer(class SettingTab extends Component{
 		this.props.uistore.defaultSettings.heightMode = value
 	}
 
+	changeMinYRange(value) {
+		console.log("common y range change")
+		this.props.uistore.defaultSettings.yRange[0] = value
+	}
+
+	changeMaxYRange(value) {
+		console.log("common y range change")
+		this.props.uistore.defaultSettings.yRange[1] = value
+	}
+
 	render () {
 		return <div>
 			<Row>
 				<h3>Default display settings</h3>
-				<h4>Window width</h4>
+				
 				<Col lg={8}>
+					<b>Window width</b>
 					<Slider min={8} max={24} defaultValue={this.props.uistore.defaultSettings.width} onAfterChange={this.changeWidth.bind(this)} step={4} dots={true} />
 				</Col>
 			</Row>
 			<Row>
 				<Checkbox defaultChecked={this.props.uistore.defaultSettings.xSync} onChange={this.changeXsync.bind(this)}>Sync x axis</Checkbox>
 				<Checkbox defaultChecked={this.props.uistore.defaultSettings.ySync} onChange={this.changeYsync.bind(this)}>Sync y axis</Checkbox>
+				<b>Common Y range: </b>
+				<InputNumber min={-10} max={10} step={0.1} defaultValue={this.props.uistore.defaultSettings.yRange[0]}formatter={value => `${value}(g)`} parser={value => value.replace('(g)', '')} onChange={this.changeMinYRange.bind(this)}></InputNumber><span> - </span>
+				<InputNumber min={-10} max={10} step={0.1} defaultValue={this.props.uistore.defaultSettings.yRange[1]}formatter={value => `${value}(g)`} parser={value => value.replace('(g)', '')} onChange={this.changeMaxYRange.bind(this)}></InputNumber><span>        </span>
+				<b>Display mode: </b>
 				<Radio.Group onChange={this.changeHeightMode.bind(this)} defaultValue={this.props.uistore.defaultSettings.heightMode}>
 					<Radio.Button value="standard">Standard mode</Radio.Button>
 					<Radio.Button value="compact">Compact mode</Radio.Button>
