@@ -19,6 +19,10 @@ This is a web app that supports offline access. It loads local mhealth sensor or
 
 ## Highlights in changelog
 
+### v1.0.3
+1. Refine GUI, move tabs to side
+1. Add "clear up loaded data" button
+
 ### v1.0.2
 1. Y axis synchronization
 1. Input to change Y range
