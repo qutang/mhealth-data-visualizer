@@ -933,7 +933,7 @@ class App extends Component {
 
 	showWarning() {
 		if(platform.name !== "Chrome"){
-			return <Alert message={<p>Please switch to <b>Chrome</b> in order to use this App, other browsers are not compatible.</p>} banner />
+			return <Alert style={{position:"fixed", top:0, width: "100%", zIndex: 1001}} message={<p>Please switch to <b>Chrome</b> in order to use this App, other browsers are not compatible.</p>} banner />
 		}else{
 			return
 		}
@@ -955,8 +955,9 @@ class App extends Component {
 
 	render () {
 		return (
+			<div>
+				{this.showWarning()}
 			<Layout>
-				
 					{/* <Row gutter={8} style={{position: "fixed", width:"100%", zIndex:1000, backgroundColor: "white", padding: 10, borderBottom: "2px #e9e9e9 solid"}}>
 					<Col lg={5} md={24}>
 						<FileDropZone uistore={this.observableUIStore} />
@@ -981,7 +982,6 @@ class App extends Component {
 					</Col> */}
 					
 					{/* </Row> */}
-					{this.showWarning()}
 				<Layout.Sider 
 					collapsible
 					trigger={null}
@@ -991,12 +991,10 @@ class App extends Component {
 					collapsedWidth="0"
 					>
 					<SiderContent uistore={this.observableUIStore} />
-					<div style={{position: "fixed", left: 10, bottom: 10, zIndex:10001, width: "100%"}}>
-						<Button shape="circle" icon={this.state.icon} type="primary" onClick={this.onCollapse.bind(this)}></Button>
-					</div>
 				</Layout.Sider>
-				
-				
+				<div style={{position: "fixed", left: 10, bottom: 10, zIndex:10001, width: "100%"}}>
+					<Button shape="circle" icon={this.state.icon} type="primary" onClick={this.onCollapse.bind(this)}></Button>
+				</div>
 				<Layout style={{height: '100vh'}}>
 					<Layout.Content >
 						<GraphCellsContainer uistore={this.observableUIStore}  />
@@ -1006,6 +1004,7 @@ class App extends Component {
 					</Layout.Footer>
 				</Layout>
 			</Layout>
+			</div>
 		)
 	}
 }
