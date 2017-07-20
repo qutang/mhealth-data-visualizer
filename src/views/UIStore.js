@@ -4,6 +4,7 @@ class ObservableUIStore {
 	constructor() {
 		mobx.extendObservable(this, {
 			graphCells: new Map(),
+			siderCollapsed: false,
 			defaultSettings: {
 				xSync: true,
 				ySync: true,
@@ -23,6 +24,15 @@ class ObservableUIStore {
 			}),
 			removeGraphCell: mobx.action((graphKey) => {
 				this.graphCells.delete(graphKey)
+			}),
+			refreshGraphs: mobx.action(() => {
+				this.graphCells.keys().forEach((graphKey, index) => {
+					const cell = this.graphCells.get(graphKey);
+					if(cell.chart){
+						cell.chart.reflow()
+					}
+					
+				})
 			}),
 			toggleGraphCell: mobx.action((graphKey) => {
 				const cell = this.graphCells.get(graphKey);

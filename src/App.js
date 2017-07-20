@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Modal, Alert, Switch, DatePicker, Radio, Badge, Popover, Tag, Checkbox, Collapse, Card, Row, Col, Tabs, Slider, Button, InputNumber, Tooltip } from 'antd';
+import {Affix, Menu, Layout, Modal, Alert, Switch, DatePicker, Radio, Badge, Popover, Tag, Checkbox, Collapse, Card, Row, Col, Tabs, Slider, Button, InputNumber, Tooltip } from 'antd';
 import Dropzone from 'react-dropzone';
 import * as mobx from 'mobx';
 import {observer} from "mobx-react"
@@ -14,6 +14,7 @@ import Math from 'mathjs'
 import deepcopy from 'deepcopy'
 import LogoImage from './logo.png'
 import platform from 'platform'
+import Script from 'react-load-script'
 require('highcharts/highcharts-more')(UsualChart.Highcharts);
 
 const SensorChart = observer(class SensorChart extends Component {
@@ -189,9 +190,7 @@ const SensorChart = observer(class SensorChart extends Component {
 				}
 			}
 			return (
-				<div>
-					<StockChart config={this.config} ref={this.props.id} domProps = {{id: this.props.id}}></StockChart>
-				</div>
+					<StockChart config={this.config} ref={this.props.id} domProps = {{id: this.props.id, style: {width:"100%",margin: "0 auto"}}}></StockChart>
 			)
 		}
 	}
@@ -557,15 +556,15 @@ const FileDropZone = observer(class FileDropZone extends Component {
 	}
 	render () {
 		return (
-				<Dropzone className='filedrop' 			activeClassName='filedropActive'
+			<Dropzone className='filedrop' 	activeClassName='filedropActive'
 				accept='.csv' onDrop={this.onDrop.bind(this)}>
-					<Card>
-					<h4 style={{textAlign: "center"}}>mHealth visualizer - v1.0.2</h4>
-					<br />
-					<p style={{textAlign: "center"}}><img style={{borderRadius: "50%", width: "70px", height: "auto"}} src={LogoImage} alt=""/></p>
-					<p style={{textAlign: "center"}}>Drag files or click here to load</p>
-					</Card>
-				</Dropzone>
+				<Card style={{margin: "5px"}}>
+				<h4 style={{textAlign: "center"}}>mHealth visualizer - v1.0.2</h4>
+				<br />
+				<p style={{textAlign: "center"}}><img style={{borderRadius: "50%", width: "70px", height: "auto"}} src={LogoImage} alt=""/></p>
+				<p style={{textAlign: "center"}}>Drag files or click here to load</p>
+				</Card>
+			</Dropzone>
 		)
 	}
 })
@@ -679,6 +678,7 @@ const PopoverMenu = observer(class PopoverMenu extends Component {
 	render () {
 		return (
 			<div style={{width: this.props.menuWidth}}>
+				<p style={{fontSize: 11, fontFamily: "Courier"}}>{this.props.title}</p>
 				<h4>Window width</h4>
 				<Slider min={8} max={24} defaultValue={this.props.defaultWindowWidthSliderValue} onAfterChange={this.props.afterWindowWidthSliderChange} step={4} dots={true} />
 				
@@ -760,31 +760,53 @@ const LoadedDataLabel = observer(class LoadedDataLabel extends Component {
 				break;
 		}
 
+		let title = this.cell.title
+		title = title.substr(0, 32)
+
 		return <Popover placement="leftTop" 
 						content={
-							<PopoverMenu afterWindowWidthSliderChange={this.changeWidth.bind(this)} defaultWindowWidthSliderValue={this.cell.width} defaultXsyncStatus={this.cell.xSync} defaultYsyncStatus={this.cell.ySync} defaultHeightMode={this.cell.heightMode}onDisplayModeChange={this.changeDisplayMode.bind(this)} 
+							<PopoverMenu title={this.cell.title} afterWindowWidthSliderChange={this.changeWidth.bind(this)} defaultWindowWidthSliderValue={this.cell.width} defaultXsyncStatus={this.cell.xSync} defaultYsyncStatus={this.cell.ySync} defaultHeightMode={this.cell.heightMode}onDisplayModeChange={this.changeDisplayMode.bind(this)} 
 							onHeightModeChange={this.changeHeightMode.bind(this)}
 							ySyncDisabled={ySyncDisabled} enablePointMode={enablePointMode} onPointModeChange={this.changePointMode.bind(this)} menuWidth={250} onSyncXChange={this.changeSyncXStatus.bind(this)} defaultYRange={this.cell.yRange} onMinYChange={this.changeMinY.bind(this)} onMaxYChange={this.changeMaxY.bind(this)}/>
 				}>
 			<Tag key={this.props.graphKey} closable={true} color="blue" onClose={() => {this.props.uistore.removeGraphCell(this.props.graphKey)}}>
-			<Badge status={this.cell.status} />
-			<Checkbox defaultChecked={this.cell.visible} onChange={() => {this.props.uistore.toggleGraphCell(this.props.graphKey)}}>{this.cell.title}</Checkbox>
+				<Badge status={this.cell.status} />
+				<Checkbox defaultChecked={this.cell.visible} onChange={() => {this.props.uistore.toggleGraphCell(this.props.graphKey)}} style={{fontFamily: "Courier", fontSize: 10}}>{title}</Checkbox>
 			</Tag>
 		</Popover>
 	}
 }) 
 
 const LoadedDataTab = observer(class LoadedDataTab extends Component{
+
+	getClearUpButton () {
+		if(this.props.uistore.graphCells.size > 0) { //if some data is loaded, show clear up button
+			return <Button style={{marginLeft:2.5}} size='small' onClick={() => {this.props.uistore.graphCells.clear()}}>Clear up all loaded data</Button>
+		}else{
+			return <h2 style={{textAlign:"center"}}>No data is currently loaded</h2>
+		}
+	}
+
+	style = {
+		marginLeft: 2.5,
+		marginBottom: 2.5,
+		width: "95%"
+	}
+
 	render () {
 	if(!this.props.uistore) return <p>No data is loaded</p>
 	console.log("called loaded tab")
 	return (
 		<div>
-			{this.props.uistore.graphCells.keys().map((graphKey, index) => {
-				return (
-					<LoadedDataLabel uistore={this.props.uistore} graphKey={graphKey}></LoadedDataLabel>
-				)
-			})}
+		<Row>
+			{this.getClearUpButton()} 
+		</Row>
+		<div style={this.style}></div>
+		{this.props.uistore.graphCells.keys().map((graphKey, index) => {
+			return (
+				<div style={this.style}><LoadedDataLabel uistore={this.props.uistore} graphKey={graphKey}></LoadedDataLabel></div>
+			)
+		})}
 		</div>
 	)
 	}
@@ -819,11 +841,11 @@ const SettingTab = observer(class SettingTab extends Component{
 	}
 
 	render () {
-		return <div>
+		return <div style={{marginLeft: 10, marginRight: 10}}>
 			<Row>
 				<h3>Default display settings</h3>
 				
-				<Col lg={8}>
+				<Col>
 					<b>Window width</b>
 					<Slider min={8} max={24} defaultValue={this.props.uistore.defaultSettings.width} onAfterChange={this.changeWidth.bind(this)} step={4} dots={true} />
 				</Col>
@@ -831,16 +853,66 @@ const SettingTab = observer(class SettingTab extends Component{
 			<Row>
 				<Checkbox defaultChecked={this.props.uistore.defaultSettings.xSync} onChange={this.changeXsync.bind(this)}>Sync x axis</Checkbox>
 				<Checkbox defaultChecked={this.props.uistore.defaultSettings.ySync} onChange={this.changeYsync.bind(this)}>Sync y axis</Checkbox>
-				<b>Common Y range: </b>
+				<h4>Common Y range </h4>
 				<InputNumber min={-10} max={10} step={0.1} defaultValue={this.props.uistore.defaultSettings.yRange[0]}formatter={value => `${value}(g)`} parser={value => value.replace('(g)', '')} onChange={this.changeMinYRange.bind(this)}></InputNumber><span> - </span>
 				<InputNumber min={-10} max={10} step={0.1} defaultValue={this.props.uistore.defaultSettings.yRange[1]}formatter={value => `${value}(g)`} parser={value => value.replace('(g)', '')} onChange={this.changeMaxYRange.bind(this)}></InputNumber><span>        </span>
 				<b>Display mode: </b>
-				<Radio.Group onChange={this.changeHeightMode.bind(this)} defaultValue={this.props.uistore.defaultSettings.heightMode}>
-					<Radio.Button value="standard">Standard mode</Radio.Button>
-					<Radio.Button value="compact">Compact mode</Radio.Button>
+				<Radio.Group onChange={this.changeHeightMode.bind(this)} defaultValue={this.props.uistore.defaultSettings.heightMode} size="small">
+					<Radio value="standard">Standard mode</Radio>
+					<Radio value="compact">Compact mode</Radio>
 				</Radio.Group>
 			</Row>
 		</div>
+	}
+})
+
+const SiderContent = observer(class SiderContent extends Component{
+
+	render () {
+		return <div>
+				 <FileDropZone uistore={this.props.uistore} />
+				<AppTabs uistore={this.props.uistore}></AppTabs> 
+			  </div>
+	}
+})
+
+
+const AppTabs = observer(class AppTabs extends Component{
+
+	onClickFileFormat () {
+		Modal.info({
+		title: 'Accepted file formats description',
+		content: (
+		<iframe src="https://qutang.gitbooks.io/mhealth-specification/content/" frameborder="0" style={{width: 650, height: 400, border:"none"}}></iframe>
+		),
+		width: 800,
+		okText:"I got it",
+		onOk() {},
+	});
+
+		}
+
+		onClickReportBug () {
+		window.open("https://github.com/qutang/mhealth-data-visualizer/issues/new")
+	}
+
+	render () {
+		return <Tabs size="small">
+				<Tabs.TabPane tab="Loaded data" key="1">
+					<LoadedDataTab uistore={this.props.uistore}></LoadedDataTab>
+				</Tabs.TabPane>
+				<Tabs.TabPane tab="Settings" key="2">
+					<SettingTab uistore={this.props.uistore}></SettingTab>
+				</Tabs.TabPane>
+				<Tabs.TabPane tab="Help" key="3">
+					<div style={{marginLeft:10, marginRight:10}}>
+						<p><Button icon='file' onClick={this.onClickFileFormat}>Accepted file format</Button></p>
+						<div style={{height:"5px"}}></div>
+						<p><Button icon='github' onClick={this.onClickReportBug}>Report bugs or request features</Button></p>
+					</div>
+					
+				</Tabs.TabPane>
+			</Tabs>
 	}
 })
 
@@ -867,32 +939,25 @@ class App extends Component {
 		}
 	}
 
-	onClickFileFormat () {
-		Modal.info({
-		title: 'Accepted file formats description',
-		content: (
-		<iframe src="https://qutang.gitbooks.io/mhealth-specification/content/" frameborder="0" style={{width: 650, height: 400, border:"none"}}></iframe>
-		),
-		width: 800,
-		okText:"I got it",
-		onOk() {},
-  });
-
+	state = {
+		collapsed: false,
+		icon: "left"
 	}
 
-	onClickReportBug () {
-		window.open("https://github.com/qutang/mhealth-data-visualizer/issues/new")
+	onCollapse () {
+		let icon = this.state.collapsed ? "left" : "right";
+		this.setState({collapsed: !this.state.collapsed, icon: icon})
 	}
 
-	onResize (contentRect) {
-		this.observableUIStore.headerHeight = contentRect.bounds.height
+	componentDidUpdate () {
+		this.observableUIStore.refreshGraphs()
 	}
 
 	render () {
 		return (
-			<div>
-				{this.showWarning()}
-					<Row gutter={8} style={{position: "fixed", width:"100%", zIndex:1000, backgroundColor: "white", padding: 10, borderBottom: "2px #e9e9e9 solid"}}>
+			<Layout>
+				
+					{/* <Row gutter={8} style={{position: "fixed", width:"100%", zIndex:1000, backgroundColor: "white", padding: 10, borderBottom: "2px #e9e9e9 solid"}}>
 					<Col lg={5} md={24}>
 						<FileDropZone uistore={this.observableUIStore} />
 					</Col>
@@ -905,24 +970,42 @@ class App extends Component {
 								<SettingTab uistore={this.observableUIStore}></SettingTab>
 							</Tabs.TabPane>
 							<Tabs.TabPane tab="Help" key="3">
-
 								<p><Button icon='file' onClick={this.onClickFileFormat}>Accepted file format</Button></p>
 								<div style={{height:"5px"}}></div>
 								<p><Button icon='github' onClick={this.onClickReportBug}>Report bugs or request features</Button></p>
 							</Tabs.TabPane>
+							<Tabs.TabPane tab="Stats" key="4">
+								<Script url="http://cdn.clustrmaps.com/map_v2.js?cl=080808&w=a&t=t&d=B-Wb96CScSxiAUr8-n5PVSeDRvrX77qY2R1cUeGFnqM&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080"></Script>
+							</Tabs.TabPane>
 						</Tabs>
-					</Col>
+					</Col> */}
 					
-					</Row>
-					
-				<Row>
-					<Col lg={12} md={24} style={{height: 110}}></Col>
-					<Col lg={12} md={24} style={{height: 180}}></Col>
-				</Row>
-				<GraphCellsContainer uistore={this.observableUIStore}  />
-				{/*<DevTools />*/}
-				<p style={{position:'fixed', bottom:0, right:0, marginBottom: "10px", marginRight:"15px"}}>Developed by  <a href="https://qutang.github.io" style={{fontFamily: '"Sacramento", cursive', fontSize: 25}}>Qu Tang</a> in 2017</p>
-			</div>
+					{/* </Row> */}
+					{this.showWarning()}
+				<Layout.Sider 
+					collapsible
+					trigger={null}
+					style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0, backgroundColor:"white", zIndex:1000, boxShadow: "1px 0.5px 1px #ccc"}}
+					collapsed={this.state.collapsed}
+					width="280"
+					collapsedWidth="0"
+					>
+					<SiderContent uistore={this.observableUIStore} />
+					<div style={{position: "fixed", left: 10, bottom: 10, zIndex:10001, width: "100%"}}>
+						<Button shape="circle" icon={this.state.icon} type="primary" onClick={this.onCollapse.bind(this)}></Button>
+					</div>
+				</Layout.Sider>
+				
+				
+				<Layout style={{height: '100vh'}}>
+					<Layout.Content >
+						<GraphCellsContainer uistore={this.observableUIStore}  />
+					</Layout.Content>
+					<Layout.Footer style={{ textAlign: 'center',maxHeight:30 }}>
+						Developed by  <a href="https://qutang.github.io" style={{fontFamily: '"Sacramento", cursive', fontSize: 12}}>Qu Tang</a> in 2017
+					</Layout.Footer>
+				</Layout>
+			</Layout>
 		)
 	}
 }
