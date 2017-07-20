@@ -999,8 +999,8 @@ class App extends Component {
 					<Layout.Content >
 						<GraphCellsContainer uistore={this.observableUIStore}  />
 					</Layout.Content>
-					<Layout.Footer style={{ textAlign: 'center',maxHeight:50 }}>
-						Developed by  <a href="https://qutang.github.io" style={{fontFamily: '"Sacramento", cursive', fontSize: 12}}>Qu Tang</a> in 2017. <span id="busuanzi_container_site_pv">Total visitors since 07/20/2017: <b id="busuanzi_value_site_pv" style={{color: "#108ee9"}}></b></span>
+					<Layout.Footer style={{ textAlign: 'center',maxHeight:30, marginBottom: 20}}>
+						Developed and Copyright by  <a href="https://qutang.github.io" style={{fontFamily: '"Sacramento", cursive', fontSize: 12}}>Qu Tang</a> in 2017<br /><span id="busuanzi_container_site_pv">Total visits: <b id="busuanzi_value_site_pv" style={{color: "#108ee9"}}></b>, unique visitors: <b id="busuanzi_value_site_uv" style={{color: "#108ee9"}}></b> since 07/20/2017</span>
 					</Layout.Footer>
 				</Layout>
 			</Layout>
