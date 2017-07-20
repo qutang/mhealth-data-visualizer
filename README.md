@@ -19,6 +19,9 @@ This is a web app that supports offline access. It loads local mhealth sensor or
 
 ## Highlights in changelog
 
+### v1.0.4
+1. Add visitor count at footer
+
 ### v1.0.3
 1. Refine GUI, move tabs to side
 1. Add "clear up loaded data" button

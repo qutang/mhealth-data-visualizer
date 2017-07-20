@@ -559,7 +559,7 @@ const FileDropZone = observer(class FileDropZone extends Component {
 			<Dropzone className='filedrop' 	activeClassName='filedropActive'
 				accept='.csv' onDrop={this.onDrop.bind(this)}>
 				<Card style={{margin: "5px"}}>
-				<h4 style={{textAlign: "center"}}>mHealth visualizer - v1.0.3</h4>
+				<h4 style={{textAlign: "center"}}>mHealth visualizer - v1.0.4</h4>
 				<br />
 				<p style={{textAlign: "center"}}><img style={{borderRadius: "50%", width: "70px", height: "auto"}} src={LogoImage} alt=""/></p>
 				<p style={{textAlign: "center"}}>Drag files or click here to load</p>
@@ -999,8 +999,8 @@ class App extends Component {
 					<Layout.Content >
 						<GraphCellsContainer uistore={this.observableUIStore}  />
 					</Layout.Content>
-					<Layout.Footer style={{ textAlign: 'center',maxHeight:30 }}>
-						Developed by  <a href="https://qutang.github.io" style={{fontFamily: '"Sacramento", cursive', fontSize: 12}}>Qu Tang</a> in 2017
+					<Layout.Footer style={{ textAlign: 'center',maxHeight:50 }}>
+						Developed by  <a href="https://qutang.github.io" style={{fontFamily: '"Sacramento", cursive', fontSize: 12}}>Qu Tang</a> in 2017. <span id="busuanzi_container_site_pv">Total visitors since 07/20/2017: <b id="busuanzi_value_site_pv" style={{color: "#108ee9"}}></b></span>
 					</Layout.Footer>
 				</Layout>
 			</Layout>
