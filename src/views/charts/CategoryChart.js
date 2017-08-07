@@ -95,18 +95,16 @@ const CategoryChart = observer(class CategoryChart extends Component {
 				categories: categories
 			}
 			// set extreme handler
-			this.config.yAxis = {
-				events: {
-					afterSetExtremes: (event) => {
-						if(this.props.graphCell.xRange != null){
-							if(this.props.graphCell.xRange[0] == event.min && this.props.graphCell.xRange[1] == event.max){
-								return
-							}
+			this.config.yAxis.events = {
+				afterSetExtremes: (event) => {
+					if(this.props.graphCell.xRange != null){
+						if(this.props.graphCell.xRange[0] == event.min && this.props.graphCell.xRange[1] == event.max){
+							return
 						}
-						this.props.graphCell.xRange = [event.min, event.max]
-						if(this.props.graphCell.syncX){
-							this.props.onSyncX(this.props.id, [event.min, event.max])
-						}
+					}
+					this.props.graphCell.xRange = [event.min, event.max]
+					if(this.props.graphCell.syncX){
+						this.props.onSyncX(this.props.id, [event.min, event.max])
 					}
 				}
 			}
