@@ -19,6 +19,9 @@ This is a web app that supports offline access. It loads local mhealth sensor or
 
 ## Highlights in changelog
 
+### v1.0.5
+1. Fix timestamp display for class and prediction plot
+
 ### v1.0.4
 1. Add visitor count at footer
 
