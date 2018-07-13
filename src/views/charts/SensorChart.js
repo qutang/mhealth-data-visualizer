@@ -45,6 +45,7 @@ const SensorChart = observer(class SensorChart extends Component {
 				enabled: true
 			},
 			xAxis: {
+				type: 'datetime'
 			},
 			yAxis: {
 				opposite:false,

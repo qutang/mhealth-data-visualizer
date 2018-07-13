@@ -1,49 +1,50 @@
 import React, { Component } from 'react';
 import * as mobx from 'mobx';
-import {observer} from "mobx-react"
+import { observer } from "mobx-react"
 import FileFormat from '../support/format'
 import Papa from 'papaparse'
 import Dropzone from 'react-dropzone';
 import LogoImage from '../logo.png'
-import {Card} from 'antd'
+import { Card } from 'antd'
+
 
 const FileDropZone = observer(class FileDropZone extends Component {
 
-	convertSensorData (data){
+	convertSensorData(data) {
 		var columns = data.slice(0, 1)[0]
 		console.log(columns)
-		data.splice(0,1)
+		data.splice(0, 1)
 		columns.splice(0, 1)
 		return columns.map((colName, col) => {
 			const data2 = data.map((row) => {
-			return [Date.parse(row[0]), parseFloat(row[col + 1])];
-		});
-		// only turn on the first three series by default
-		const visible = col < 3 ? true : false;
+				return [Date.parse(row[0] + ' UTC'), parseFloat(row[col + 1])];
+			});
+			// only turn on the first three series by default
+			const visible = col < 3 ? true : false;
 			return {
 				data: data2,
 				type: 'line',
 				name: columns[col],
 				visible: visible,
 				tooltip: {
-				valueDecimals: 2
-			}
+					valueDecimals: 2
+				}
 			};
 		});
 	}
 
-	convertAnnotationData = function(data){
-		data.splice(0,1);
+	convertAnnotationData = function (data) {
+		data.splice(0, 1);
 		const series = {};
 		const chartSeries = [];
 		const xInds = {};
 		var i = 0;
 		data.map((row) => {
-			if(!series[row[3]]){
+			if (!series[row[3]]) {
 				series[row[3]] = []
 				xInds[row[3]] = i++;
 			}
-			series[row[3]].push([xInds[row[3]], Date.parse(row[1]), Date.parse(row[2])])
+			series[row[3]].push([xInds[row[3]], Date.parse(row[1] + " UTC"), Date.parse(row[2] + " UTC")])
 		});
 
 		Object.keys(series).forEach((key, index) => {
@@ -56,23 +57,23 @@ const FileDropZone = observer(class FileDropZone extends Component {
 		return chartSeries;
 	}
 
-	convertCategoryData = function(data, shareOntology = false){
+	convertCategoryData = function (data, shareOntology = false) {
 		const columns = data.slice(0, 1)[0];
-		data.splice(0,1);
+		data.splice(0, 1);
 		var i = 0;
-		
+
 		columns.splice(0, 2);
 		var series = {};
 		var chartSeries = [];
 
 		data.map((row) => {
-			
+
 			columns.map((col, ind) => {
 				const serieKey = shareOntology ? row[ind + 2] : col + "_" + row[ind + 2];
-				if(!series[serieKey]){
+				if (!series[serieKey]) {
 					series[serieKey] = []
 				}
-				series[serieKey].push([ind, Date.parse(row[0]), Date.parse(row[1])])
+				series[serieKey].push([ind, Date.parse(row[0] + " UTC"), Date.parse(row[1] + " UTC")])
 			})
 		});
 
@@ -87,8 +88,8 @@ const FileDropZone = observer(class FileDropZone extends Component {
 		return chartSeries;
 	}
 
-	convertData(fileType, data){
-		switch(fileType){
+	convertData(fileType, data) {
+		switch (fileType) {
 			case "sensor":
 				return this.convertSensorData(data)
 			case "annotation":
@@ -104,7 +105,7 @@ const FileDropZone = observer(class FileDropZone extends Component {
 	onDrop(acceptedFiles, rejectedFiles) {
 
 		const uistore = this.props.uistore
-		
+
 		// creat new graph cells
 		acceptedFiles.forEach((file, index) => {
 			console.log(file)
@@ -125,7 +126,7 @@ const FileDropZone = observer(class FileDropZone extends Component {
 				ySync: uistore.defaultSettings.ySync
 			}
 			console.log(newCell.fileType)
-			const graphKey = file.name.replace(/\./g,'-')
+			const graphKey = file.name.replace(/\./g, '-')
 			console.log(graphKey)
 			uistore.addGraphCell(graphKey, newCell)
 			// load and plot
@@ -142,15 +143,15 @@ const FileDropZone = observer(class FileDropZone extends Component {
 			})
 		});
 	}
-	render () {
+	render() {
 		return (
-			<Dropzone className='filedrop' 	activeClassName='filedropActive'
+			<Dropzone className='filedrop' activeClassName='filedropActive'
 				accept='.csv' onDrop={this.onDrop.bind(this)}>
-				<Card style={{margin: "5px"}}>
-				<h4 style={{textAlign: "center"}}>mHealth visualizer - v1.0.5</h4>
-				<br />
-				<p style={{textAlign: "center"}}><img style={{borderRadius: "50%", width: "70px", height: "auto"}} src={LogoImage} alt=""/></p>
-				<p style={{textAlign: "center"}}>Drag files or click here to load</p>
+				<Card style={{ margin: "5px" }}>
+					<h4 style={{ textAlign: "center" }}>mHealth visualizer - v1.0.6</h4>
+					<br />
+					<p style={{ textAlign: "center" }}><img style={{ borderRadius: "50%", width: "70px", height: "auto" }} src={LogoImage} alt="" /></p>
+					<p style={{ textAlign: "center" }}>Drag files or click here to load</p>
 				</Card>
 			</Dropzone>
 		)

@@ -19,6 +19,10 @@ This is a web app that supports offline access. It loads local mhealth sensor or
 
 ## Highlights in changelog
 
+### v1.0.6
+1. Update dependencies
+2. Fix timestamp display (ignore timezone)
+
 ### v1.0.5
 1. Fix timestamp display for class and prediction plot
 
